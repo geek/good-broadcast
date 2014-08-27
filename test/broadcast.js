@@ -4,7 +4,6 @@ var Utils = require('../lib/utils');
 var TestHelpers = require('./test_helpers');
 var Fs = require('fs');
 var Path = require('path');
-var Stream = require('stream');
 
 // Test shortcuts
 
@@ -16,7 +15,13 @@ var describe = lab.describe;
 var it = lab.it;
 
 var internals = {
-    tempLogFolder: Path.join(__dirname, 'fixtures')
+    tempLogFolder: Path.join(__dirname, 'fixtures'),
+    getFrames: function(filter) {
+        var stack = new Error().stack.split('\n');
+        return stack.filter(function (item) {
+           return item.indexOf(filter) > -1;
+        });
+    }
 };
 
 
@@ -205,41 +210,41 @@ describe('Broadcast', function () {
 
             Broadcast.run(['-u', 'http://127.0.0.1:31338', '-i', '10']);
         });
+
+        it('throws an error for invalid arguments as an option argument', function (done) {
+
+            expect(function() {
+
+                Broadcast.run({});
+            }).to.throw(Error);
+            done();
+        });
     });
 
     describe('broadcast', function() {
 
         it('sends a message to the supplied url', function (done) {
 
-            var pipe = Stream.Readable.prototype.pipe;
-            var hitcount = 0;
-
             var server = TestHelpers.createTestServer(function (request, reply) {
 
                 expect(request.payload.events).to.equal('test event');
-                reply('ok');
+                reply(200);
+                done();
             });
 
-            Stream.Readable.prototype.pipe = function(dest, pipeOpts) {
+            var log = console.log;
 
-                var stack = new Error().stack.split('\n').slice(1);
+            console.log = function (value) {
 
-                if (~stack[0].indexOf('at Stream.Readable.pipe')) {
-                    expect(dest).to.exist;
-                    Stream.Readable.prototype.pipe = pipe;
-                    done();
-                }
-                else {
-                    // Normal stream, call the real thing
-                    return pipe.apply(null, arguments);
-                }
+                expect(value).to.equal(200);
+                console.log = log;
+                done();
             };
 
             server.start(function () {
 
                 Broadcast.broadcast('test event', server.info.uri);
             });
-
 
         });
 
@@ -294,20 +299,20 @@ describe('Broadcast', function () {
                     expect(init.result.stats).to.exist;
                     expect(init.previous.stats).to.exist;
 
-                    iterator(init, function (error, value) {
+                    iterator(init, function (value, next) {
 
-                        expect(error).to.not.exist;
+                        //expect(error).to.not.exist;
 
                         var file = Fs.readFileSync('./test/fixtures/.lastindex', {
                             encoding: 'utf8'
                         });
                         expect(file).to.equal('503');
 
-                        Utils.recursiveAsync = original;
-
                         Fs.unlinkSync('./test/fixtures/.lastindex');
-
                         done();
+
+
+                        Utils.recursiveAsync = original;
                     });
                 };
 
@@ -317,6 +322,40 @@ describe('Broadcast', function () {
                     useLastIndex: true
                 });
             });
+        });
+
+        it('logs an error trying to create the index file', function (done) {
+
+            var open = Fs.open;
+            var log = console.error;
+
+            Fs.open = function (path, flags, callback) {
+
+                var end = internals.getFrames('.logLastIndex');
+
+                if  (end.length) {
+                    Fs.open = open;
+                    callback(new Error('mock error'), undefined);
+                }
+                else {
+                    open.apply(null, arguments);
+                }
+            };
+
+            console.error = function (value) {
+
+                expect(value.message).to.equal('mock error');
+                console.error = log;
+
+                done();
+            };
+
+            Broadcast.run({
+                path: './test/fixtures/test_01.log',
+                url: 'http://127.0.0.1:1',
+                useLastIndex: true
+            });
+
         });
     });
 
@@ -384,7 +423,6 @@ describe('Broadcast', function () {
                 url: 'http://127.0.0.1:1'
             });
         });
-
-        //it('resets the start index ')
     });
+
 });
