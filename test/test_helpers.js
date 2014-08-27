@@ -6,6 +6,7 @@ var Crypto = require('crypto');
 var internals = {};
 
 exports.createTestServer = function (options, handler) {
+
     if (arguments.length === 1) {
         handler = options;
         options = {};

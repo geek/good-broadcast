@@ -14,7 +14,7 @@ describe('Utils', function () {
 
     describe('forever', function(){
 
-        it('calls itself recursively asynchonously', function (done) {
+        it('calls itself recursively asynchronously', function (done) {
 
             var count = 0;
             Util.recursiveAsync(0, function (value, callback) {

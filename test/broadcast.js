@@ -17,8 +17,10 @@ var it = lab.it;
 var internals = {
     tempLogFolder: Path.join(__dirname, 'fixtures'),
     getFrames: function(filter) {
+
         var stack = new Error().stack.split('\n');
         return stack.filter(function (item) {
+
            return item.indexOf(filter) > -1;
         });
     }
@@ -71,6 +73,7 @@ describe('Broadcast', function () {
             });
 
             server.start(function () {
+
                 var original = Utils.recursiveAsync;
 
                 Utils.recursiveAsync = function (init, iterator, callback) {
@@ -160,6 +163,7 @@ describe('Broadcast', function () {
             Fs.writeFileSync(config, json);
 
             expect(function() {
+
                 Broadcast.run(['-c', config]);
             }).to.throw('Unexpected end of input');
 
@@ -269,6 +273,7 @@ describe('Broadcast', function () {
             var log = console.error;
 
             console.error = function (value) {
+
                 expect(value).to.exist;
                 expect(value.output.statusCode).to.equal(502);
 
@@ -300,8 +305,6 @@ describe('Broadcast', function () {
                     expect(init.previous.stats).to.exist;
 
                     iterator(init, function (value, next) {
-
-                        //expect(error).to.not.exist;
 
                         var file = Fs.readFileSync('./test/fixtures/.lastindex', {
                             encoding: 'utf8'
