@@ -33,3 +33,12 @@ exports.uniqueFilename = function (path) {
     var name = [Date.now(), process.pid, Crypto.randomBytes(8).toString('hex')].join('-') + '.__test';
     return Path.join(path, name);
 };
+
+exports.cleanLastIndex = function(dir) {
+
+    var lastIndex = Path.join(dir,'.lastindex');
+
+    if (Fs.existsSync(lastIndex)) {
+        Fs.unlinkSync(lastIndex);
+    }
+};

@@ -311,7 +311,7 @@ describe('Broadcast', function () {
                         });
                         expect(file).to.equal('503');
 
-                        Fs.unlinkSync('./test/fixtures/.lastindex');
+                        TestHelpers.cleanLastIndex(internals.tempLogFolder);
                         done();
 
 
@@ -350,6 +350,7 @@ describe('Broadcast', function () {
                 expect(value.message).to.equal('mock error');
                 console.error = log;
 
+                TestHelpers.uniqueFilename(internals.tempLogFolder);
                 done();
             };
 

@@ -80,13 +80,12 @@ var it = lab.it;
 
 internals.cleanFiles = function (path, callback) {
 
-    var lastIndex = Path.join(internals.tempLogFolder,'.lastindex');
     if (Fs.existsSync(path)) {
         Fs.unlinkSync(path);
     }
-    if (Fs.existsSync(lastIndex)) {
-        Fs.unlinkSync(lastIndex);
-    }
+
+    TestHelpers.cleanLastIndex(internals.tempLogFolder);
+
     return callback();
 };
 
@@ -461,6 +460,7 @@ describe('Broadcast', function () {
 
         var log = TestHelpers.uniqueFilename(internals.tempLogFolder);
         var stream = Fs.createWriteStream(log, { flags: 'a' });
+
         var broadcast1 = null;
         var broadcast2 = null;
         var hitCount = 0;
