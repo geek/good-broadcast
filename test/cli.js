@@ -31,7 +31,7 @@ var internals = {
                 return JSON.stringify(this);
             }
         },
-        lineTwo:{
+        lineTwo: {
             event: 'request',
             id: '1369328753222-42369-62002',
             instance: 'http://localhost:8080',
@@ -96,7 +96,6 @@ describe('Broadcast', function () {
 
     it('sends log file to remote server', function (done) {
 
-
         var broadcast = null;
         var server = TestHelpers.createTestServer(function (request, reply) {
 
@@ -124,21 +123,23 @@ describe('Broadcast', function () {
     });
 
     it('handles a log file that grows', function (done) {
+
         var broadcast = null;
         var runCount = 0;
         var server = TestHelpers.createTestServer(function (request, reply) {
+
             var id = Hoek.reach(request, 'payload.events.0.id');
 
             expect(request.payload.schema).to.equal('good.v1');
-            if (runCount++ === 0) {
-
+            if (runCount === 0) {
                 expect(id).to.equal(internals.inlineLogEntry.lineTwo.id);
             }
             else {
-
                 expect(id).to.equal(internals.inlineLogEntry.lineThree.id);
                 broadcast.kill('SIGUSR2');
             }
+
+            runCount++;
         });
 
         server.start(function () {
@@ -162,9 +163,11 @@ describe('Broadcast', function () {
 
             setTimeout(function () {
 
+                stream.write('\n');
                 stream.write(internals.inlineLogEntry.lineThree.toString());
                 stream.end();
-            }, 300);
+            }, 1000);
+
         });
     });
 

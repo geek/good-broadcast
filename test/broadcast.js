@@ -194,6 +194,7 @@ describe('Broadcast', function () {
         });
 
         it('display validation errors running from the command line', function (done) {
+
             var log = console.error;
             var exit = process.exit;
             var output = '';
